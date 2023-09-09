@@ -1,2 +1,5 @@
-
+sandbox/
 .DS_Store
+outputs/
+pdf2speech/__pycache__/
+.vscode/
