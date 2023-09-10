@@ -1,6 +1,5 @@
 import sys; sys.path.append('..')
 import click
-import os
 import fitz
 from tqdm import tqdm
 from threading import Thread

@@ -12,6 +12,9 @@ from google.cloud import texttospeech
 from google.api_core.exceptions import InvalidArgument
 from tqdm import tqdm
 
+# set the openai api key
+openai.api_key = os.environ.get("OPENAI_API_KEY")
+
 # donload nltk data
 nltk.download('punkt')
 
