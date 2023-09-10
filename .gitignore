@@ -3,3 +3,7 @@ sandbox/
 outputs/
 pdf2speech/__pycache__/
 .vscode/
+.pytest_cache/
+```
+.ipynb_checkpoints/
+
