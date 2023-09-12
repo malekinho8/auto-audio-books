@@ -228,14 +228,35 @@ def process_page(page_index, pdf_file, previous_section, gpt_model_type):
     prompt_instructions = "Please use hypophora and anthypophora style of prose to convey your understanding of the passage. Your output should follow a call and reponse style of prose. For example: Why do we use this technique? Because it grabs the reader's attention."
 
     num_input_tokens = len(tiktoken.encoding_for_model(gpt_model_type).encode(prompt_start + prompt_instructions))
-    gpt_out = query_gpt(prompt_start, prompt_instructions, gpt_model_type)
-    section_title = query_gpt(prompt_start, "What would be a good section title for this passage?", gpt_model_type)
-
-    updated_text = f'Page {page_index}, Continuing from Section {previous_section}, and beginning section {section_title}: \n\n{gpt_out}\n\n'
-    
-    num_output_tokens = len(tiktoken.encoding_for_model(gpt_model_type).encode(gpt_out))
-
+    if num_input_tokens > 3000:
+      prompt_start = prompt_start[:3000]
+      num_input_tokens = 3000
+    reference_rating = query_gpt(prompt_start, "Give a confidence rating on a scale of 0 to 100 if you think this is a References section of a paper. Only respond with a number.", gpt_model_type, max_tokens = 5)
+    if int(reference_rating) <= 80:
+      gpt_out = query_gpt(prompt_start, prompt_instructions, gpt_model_type)
+      section_title = query_gpt(prompt_start, "What would be a good section title for this passage?", gpt_model_type)
+      updated_text = f'Page {page_index}, Continuing from Section {previous_section}, and beginning section {section_title}: \n\n{gpt_out}\n\n'
+      num_output_tokens = len(tiktoken.encoding_for_model(gpt_model_type).encode(gpt_out)) + len(tiktoken.encoding_for_model(gpt_model_type).encode(section_title))
+      num_input_tokens = 2 * num_input_tokens
+    else: 
+      section_title = "References"
+      updated_text = "Please see the paper to inspect the references."
+      num_output_tokens = 5
     return updated_text, section_title, num_input_tokens, num_output_tokens
+  
+def get_last_page_processed(base_filename):
+  """Get the last page of the PDF that was processed."""
+  if os.path.exists(f'{TXT_DIR}out_text_{base_filename}.txt'):
+    with open(f'{TXT_DIR}out_text_{base_filename}.txt', 'r') as f:
+      text = f.read()
+      if text:
+        # use regex to find pattern of r"Page X, ", and extract X as an integer
+        last_page_processed = int(re.findall(r"Page (\d+), ", text)[-1])
+      else:
+        last_page_processed = 0
+  else:
+    last_page_processed = 0
+  return last_page_processed
 
 def reformulate_pdf(pdf_path, gpt_model_type='gpt-3.5-turbo', max_tokens=1000, temperature=1):
   pdf_file = fitz.open(pdf_path)
@@ -265,7 +286,7 @@ def getSentencesAndConvertToSpeech(text_from_page, base_filename, voice_type, ge
 def calculateMoneySpent(input_token_count, output_token_count, gpt_model_type):
   """Calculate the amount of money spent. Updated as of September 2023. Pricing data from https://openai.com/pricing/"""
   # define the cost per token
-  if gpt_model_type is 'gpt-3.5-turbo':
+  if gpt_model_type == 'gpt-3.5-turbo':
     cost_per_input_token = 0.0015/1000
     cost_per_output_token = 0.002/1000
   else:

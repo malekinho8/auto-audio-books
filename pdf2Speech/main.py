@@ -1,9 +1,11 @@
 import sys; sys.path.append('..')
 import click
+import os
 import fitz
+import re
 from tqdm import tqdm
 from threading import Thread
-from utils import (getSentencesAndConvertToSpeech, process_page,
+from utils import (getSentencesAndConvertToSpeech, process_page, get_last_page_processed,
                    getFilenameWithoutExtension, genderStringToGCloudGenderFormat,
                    calculateMoneySpent, AUDIO_DIR, TXT_DIR)
 
@@ -32,35 +34,44 @@ def pdf2Speech(pdf_path, voice_type, language, gender):
     section_title = "Preface"
     input_token_count = 0
     output_token_count = 0
-    text = ""
+    
+    # initialize text variable
+    # if the text file already exists, read from it
+    if os.path.exists(f'{TXT_DIR}out_text_{base_filename}.txt'):
+        with open(f'{TXT_DIR}out_text_{base_filename}.txt', 'r') as f:
+            text = f.read()
+    else:
+        text = ""
 
     # Use tqdm to create a progress bar
     for page_index in tqdm(range(len(doc)), desc="Processing pages"):
-        # Process each page of the PDF
-        updated_text, section_title, num_input_tokens, num_output_tokens = process_page(page_index, doc, section_title, GPT_MODEL_TYPE)
+        # only process the page if it hasn't been processed already
+        if page_index > get_last_page_processed(base_filename):
+            # Process each page of the PDF
+            updated_text, section_title, num_input_tokens, num_output_tokens = process_page(page_index, doc, section_title, GPT_MODEL_TYPE)
 
-        # If there's a previous speech thread, wait for it to finish
-        if speech_thread and speech_thread.is_alive():
-            speech_thread.join()
-        
-        # On another thread, convert the processed text to speech
-        speech_thread = Thread(target=getSentencesAndConvertToSpeech, args=(updated_text, base_filename, voice_type, gender, language))
-        speech_thread.start()
+            # If there's a previous speech thread, wait for it to finish
+            if speech_thread and speech_thread.is_alive():
+                speech_thread.join()
+            
+            # On another thread, convert the processed text to speech
+            speech_thread = Thread(target=getSentencesAndConvertToSpeech, args=(updated_text, base_filename, voice_type, gender, language))
+            speech_thread.start()
 
-        # Add to the total number of input and output tokens
-        input_token_count += num_input_tokens
-        output_token_count += num_output_tokens
+            # Add to the total number of input and output tokens
+            input_token_count += num_input_tokens
+            output_token_count += num_output_tokens
 
-        # Add the updated text to the text variable
-        text += updated_text
+            # Add the updated text to the text variable
+            text += updated_text
+
+            # continously append text to a text file
+            with open(f"{TXT_DIR}out_text_{base_filename}.txt", "a") as f:
+                f.write(text)
 
     # Ensure the last speech thread finishes before exiting the function
     if speech_thread:
         speech_thread.join()
-
-    # Save the text to a file
-    with open(f"{TXT_DIR}out_text_{base_filename}.txt", "w") as f:
-        f.write(text)
     
     # Print the number of input and output tokens
     print(f"Number of input tokens: {input_token_count}")
