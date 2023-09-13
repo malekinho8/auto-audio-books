@@ -232,13 +232,13 @@ def process_page(page_index, pdf_file, previous_section, gpt_model_type):
       prompt_start = prompt_start[:3000]
       num_input_tokens = 3000
     reference_rating = query_gpt(prompt_start, "Give a confidence rating on a scale of 0 to 100 if you think this is a References section of a paper. Only respond with a number.", gpt_model_type, max_tokens = 5)
-    if int(reference_rating) <= 80:
+    if int(reference_rating) <= 90 or page_index <= 0.7 * len(pdf_file):
       gpt_out = query_gpt(prompt_start, prompt_instructions, gpt_model_type)
       section_title = query_gpt(prompt_start, "What would be a good section title for this passage?", gpt_model_type)
       updated_text = f'Page {page_index}, Continuing from Section {previous_section}, and beginning section {section_title}: \n\n{gpt_out}\n\n'
       num_output_tokens = len(tiktoken.encoding_for_model(gpt_model_type).encode(gpt_out)) + len(tiktoken.encoding_for_model(gpt_model_type).encode(section_title))
       num_input_tokens = 2 * num_input_tokens
-    else: 
+    else : 
       section_title = "References"
       updated_text = "Please see the paper to inspect the references."
       num_output_tokens = 5

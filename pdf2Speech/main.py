@@ -17,8 +17,10 @@ GPT_MODEL_TYPE = "gpt-3.5-turbo"
 @click.option('--voice-type', default="en-US-Studio-O", help='Type of voice for the speech.')
 @click.option('--language', default="en-US", help='Language of the speech.')
 @click.option('--gender', default='Female', help='Gender of the voice (Male or Female).')
+@click.option('--page-start', default=0, help='Page to start processing from.')
+@click.option('--page-end', default=-1, help='Page to end processing at.')
 
-def pdf2Speech(pdf_path, voice_type, language, gender):
+def pdf2Speech(pdf_path, voice_type, language, gender, page_start, page_end):
     """Convert a PDF to Speech."""
     # convert gender to proper format
     gender = genderStringToGCloudGenderFormat(gender)
@@ -42,9 +44,15 @@ def pdf2Speech(pdf_path, voice_type, language, gender):
             text = f.read()
     else:
         text = ""
+    
+    # specify page range to process
+    if page_index != -1:
+        page_range = range(page_start-1, page_end)
+    else:
+        page_range = range(len(doc))
 
     # Use tqdm to create a progress bar
-    for page_index in tqdm(range(len(doc)), desc="Processing pages"):
+    for page_index in tqdm(page_range, desc="Processing pages"):
         # only process the page if it hasn't been processed already
         if page_index > get_last_page_processed(base_filename):
             # Process each page of the PDF
