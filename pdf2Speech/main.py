@@ -46,10 +46,10 @@ def pdf2Speech(pdf_path, voice_type, language, gender, page_start, page_end):
         text = ""
     
     # specify page range to process
-    if page_index != -1:
+    if page_end != -1:
         page_range = range(page_start-1, page_end)
     else:
-        page_range = range(len(doc))
+        page_range = range(page_start-1, len(doc))
 
     # Use tqdm to create a progress bar
     for page_index in tqdm(page_range, desc="Processing pages"):
