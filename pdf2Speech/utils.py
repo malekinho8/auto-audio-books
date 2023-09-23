@@ -221,11 +221,14 @@ def query_gpt(prompt, instructions, gpt_model_type, max_tokens=1000, temperature
   )
   return response['choices'][0]['message']['content']
 
-def process_page(page_index, pdf_file, previous_section, gpt_model_type):
+def process_page(page_index, pdf_file, previous_section, gpt_model_type, prompt_style):
     page = pdf_file[page_index]
     page_text = page.get_text()
     prompt_start = f"TEXT: \n\n{page_text}"
-    prompt_instructions = "Please use hypophora and anthypophora style of prose to convey your understanding of the passage. Your output should follow a call and reponse style of prose. For example: Why do we use this technique? Because it grabs the reader's attention."
+    if prompt_style == 'qa':
+      prompt_instructions = "Please use hypophora and anthypophora style of prose to convey your understanding of the passage. Your output should follow a call and reponse style of prose. For example: Why do we use this technique? Because it grabs the reader's attention."
+    elif prompt_style == 'conversational':
+      prompt_instructions = "Please use conversational style of prose to convey your understanding of the passage."
 
     num_input_tokens = len(tiktoken.encoding_for_model(gpt_model_type).encode(prompt_start + prompt_instructions))
     if num_input_tokens > 3000:

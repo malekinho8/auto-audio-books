@@ -19,8 +19,9 @@ GPT_MODEL_TYPE = "gpt-3.5-turbo"
 @click.option('--gender', default='Female', help='Gender of the voice (Male or Female).')
 @click.option('--page-start', default=0, help='Page to start processing from.')
 @click.option('--page-end', default=-1, help='Page to end processing at.')
+@click.option('--prompt-style', default='qa', help='Prompt Style, either "qa" or "conversational" for now.')
 
-def pdf2Speech(pdf_path, voice_type, language, gender, page_start, page_end):
+def pdf2Speech(pdf_path, voice_type, language, gender, page_start, page_end, prompt_style):
     """Convert a PDF to Speech."""
     # convert gender to proper format
     gender = genderStringToGCloudGenderFormat(gender)
@@ -63,7 +64,8 @@ def pdf2Speech(pdf_path, voice_type, language, gender, page_start, page_end):
                 speech_thread.join()
             
             # On another thread, convert the processed text to speech
-            speech_thread = Thread(target=getSentencesAndConvertToSpeech, args=(updated_text, base_filename, voice_type, gender, language))
+            audio_file_name = base_filename if page_end == -1 else f'{base_filename}-[pg.{page_start}-{page_end}]'
+            speech_thread = Thread(target=getSentencesAndConvertToSpeech, args=(updated_text, audio_file_name, voice_type, gender, language))
             speech_thread.start()
 
             # Add to the total number of input and output tokens
@@ -74,7 +76,8 @@ def pdf2Speech(pdf_path, voice_type, language, gender, page_start, page_end):
             text += updated_text
 
             # continously append text to a text file
-            with open(f"{TXT_DIR}out_text_{base_filename}.txt", "a") as f:
+            txt_filename = f'{TXT_DIR}out_text_{base_filename}.txt' if page_end == -1 else f'{TXT_DIR}out_text_{base_filename}-[pg.{page_start}-{page_end}].txt'
+            with open(txt_filename, "a") as f:
                 f.write(text)
 
     # Ensure the last speech thread finishes before exiting the function
