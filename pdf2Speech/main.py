@@ -57,7 +57,7 @@ def pdf2Speech(pdf_path, voice_type, language, gender, page_start, page_end, pro
         # only process the page if it hasn't been processed already
         if page_index > get_last_page_processed(base_filename):
             # Process each page of the PDF
-            updated_text, section_title, num_input_tokens, num_output_tokens = process_page(page_index, doc, section_title, GPT_MODEL_TYPE)
+            updated_text, section_title, num_input_tokens, num_output_tokens = process_page(page_index, doc, section_title, GPT_MODEL_TYPE, prompt_style)
 
             # If there's a previous speech thread, wait for it to finish
             if speech_thread and speech_thread.is_alive():
