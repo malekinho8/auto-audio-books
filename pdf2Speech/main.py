@@ -6,7 +6,7 @@ import re
 from tqdm import tqdm
 from threading import Thread
 from utils import (getSentencesAndConvertToSpeech, process_page, get_last_page_processed,
-                   getFilenameWithoutExtension, genderStringToGCloudGenderFormat,
+                   getFilenameWithoutExtension, getGCloudVoiceSettingsFromGender,
                    calculateMoneySpent, AUDIO_DIR, TXT_DIR)
 
 # GPT Model Type
@@ -14,17 +14,16 @@ GPT_MODEL_TYPE = "gpt-3.5-turbo"
 
 @click.command()
 @click.option('--pdf-path', type=click.Path(exists=True), required=True, help='Path to the input PDF file.')
-@click.option('--voice-type', default="en-US-Studio-O", help='Type of voice for the speech.')
 @click.option('--language', default="en-US", help='Language of the speech.')
 @click.option('--gender', default='Female', help='Gender of the voice (Male or Female).')
 @click.option('--page-start', default=0, help='Page to start processing from.')
 @click.option('--page-end', default=-1, help='Page to end processing at.')
 @click.option('--prompt-style', default='qa', help='Prompt Style, either "qa" or "conversational" for now.')
 
-def pdf2Speech(pdf_path, voice_type, language, gender, page_start, page_end, prompt_style):
+def pdf2Speech(pdf_path, language, gender, page_start, page_end, prompt_style):
     """Convert a PDF to Speech."""
     # convert gender to proper format
-    gender = genderStringToGCloudGenderFormat(gender)
+    gender, voice_type = getGCloudVoiceSettingsFromGender(gender)
 
     # get base filename
     base_filename = getFilenameWithoutExtension(pdf_path)

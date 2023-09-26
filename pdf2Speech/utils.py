@@ -160,12 +160,14 @@ def getSentencesFromTextFile(fn):
   return sentences
 
 # define utility for converting to proper gender format
-def genderStringToGCloudGenderFormat(genderString):
+def getGCloudVoiceSettingsFromGender(genderString):
   if genderString == 'Male':
     gender = texttospeech.SsmlVoiceGender.MALE
+    voice_type = "en-US-Studio-M"
   else:
     gender = texttospeech.SsmlVoiceGender.FEMALE
-  return gender
+    voice_type = "en-US-Studio-O"
+  return gender, voice_type
 
 # convert text to speech using google cloud api
 def convertTextToSpeech(sentences, ofilename, voice_name="en-US-Studio-O", voice_gender=texttospeech.SsmlVoiceGender.FEMALE, language_code="en-US", audio_encoding=texttospeech.AudioEncoding.MP3):  
