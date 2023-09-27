@@ -18,7 +18,7 @@ GPT_MODEL_TYPE = "gpt-3.5-turbo"
 @click.option('--gender', default='Female', help='Gender of the voice (Male or Female).')
 @click.option('--page-start', default=0, help='Page to start processing from.')
 @click.option('--page-end', default=-1, help='Page to end processing at.')
-@click.option('--prompt-style', default='qa', help='Prompt Style, either "qa" or "conversational" for now.')
+@click.option('--prompt-style', default='qa', help='Prompt Style, either "qa", "conversational", or "podcast" for now.')
 
 def pdf2Speech(pdf_path, language, gender, page_start, page_end, prompt_style):
     """Convert a PDF to Speech."""

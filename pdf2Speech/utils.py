@@ -231,6 +231,8 @@ def process_page(page_index, pdf_file, previous_section, gpt_model_type, prompt_
       prompt_instructions = "Please use hypophora and anthypophora style of prose to convey your understanding of the passage. Your output should follow a call and reponse style of prose. For example: Why do we use this technique? Because it grabs the reader's attention."
     elif prompt_style == 'conversational':
       prompt_instructions = "Please use conversational style of prose to convey your understanding of the passage."
+    elif prompt_style == 'podcast':
+      prompt_instructions = "Deliver your understanding of the passage in a podcast-style format. Keep it factual but engaging, using a conversational tone and rhetorical devices to hold listener interest."
 
     num_input_tokens = len(tiktoken.encoding_for_model(gpt_model_type).encode(prompt_start + prompt_instructions))
     if num_input_tokens > 3000:
